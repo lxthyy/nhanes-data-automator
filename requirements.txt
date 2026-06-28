@@ -1,0 +1,16 @@
+# ============================================
+# NHANES Data Downloader & Validation Engine
+# 运行环境依赖
+# ============================================
+
+pandas>=1.5.0
+numpy>=1.24.0
+openpyxl>=3.0.0
+python-docx>=0.8.11
+scikit-learn>=1.2.0
+statsmodels>=0.14.0
+scipy>=1.10.0
+requests>=2.28.0
+
+# GUI（Python内置tkinter，无需额外安装）
+# matplotlib>=3.7.0  （用于部分可选的可视化）
