@@ -969,6 +969,7 @@ def clean_and_reorder_columns(df, keep_labels=None):
         "TSH/FT4", "FT3/FT4", "TyG", "动脉粥样硬化", "非HDL", "HDL-C达标", "血脂达标",
         "降脂药", "甲状腺药物", "处方药数", "处方药(Rx",
         "使用处方药", "Rx-Use", "Rx-Count",
+        "怀孕", "Pregnant", "RIDEXPRG",
         "调查周期编号", "Cycle-N",
         "异常", "异常值标记",
         "睡眠", "Sleep", "打鼾", "Snore",
@@ -2652,9 +2653,41 @@ DEFAULT_STUDY_PROFILE = {
 }
 
 STUDY_TEMPLATES = {
-    "甲状腺功能研究": {
-        "study_name": "甲状腺功能与代谢研究(J-Shaped TSH标准)",
-        "description": "基于论文10项QC过滤器：TSH 0.1-10.0, FT3 0.5-50.0pmol/L, FT4 0.5-70.0pmol/L, TC 1.0-13.0, TG 0.2-11.3, HDL 0.2-3.0, LDL 0.3-8.0, ALT 3-200, Cr 10-300μmol/L, 年龄≥18, BMI 16-40",
+    "中美TSH对比_主分析(复刻中国论文)": {
+        "study_name": "中美TSH-血脂对比 — 主分析(严格复刻中国论文标准)",
+        "description": "准确复刻中国论文Manuscript1.14筛选：10项QC过滤(TSH/FT3/FT4/TC/TG/HDL/LDL/ALT/Cr/年龄/BMI)+排除甲状腺药物+甲状腺手术史。不排降脂药/妊娠/甲状腺病诊断",
+        "data": {"cycles": ["E","F","G"], "groups": ["demo_core","demo_detail","bmx","bpx","bpq",
+                 "smq","alq","diq","lipid","glu","liver","kidney","thy","inf",
+                 "mcq","rxq"],
+                 "convert_units": True, "auto_aggregate": True},
+        "inclusion": [
+            {"var": "年龄(Age,岁)", "min": 18, "reason": "年龄≥18岁（与中国论文一致）"},
+            {"var": "BMI(kg/m²)", "min": 16, "max": 40, "reason": "BMI 16-40 kg/m²（与中国论文一致）"},
+        ],
+        "exclusion": {
+            "medication_classes": ["甲状腺药物(Thyroid)"],
+            "range_filters": [
+                {"var": "促甲状腺激素(TSH,mIU/L)", "min": 0.1, "max": 10.0, "reason": "TSH 0.1-10.0 mIU/L（与中国论文一致）"},
+                {"var": "游离三碘甲腺原氨酸(FT3,pmol/L)", "min": 0.5, "max": 50.0, "reason": "FT3 0.5-50.0 pmol/L（与中国论文一致）"},
+                {"var": "游离甲状腺素(FT4,pmol/L)", "min": 0.5, "max": 70.0, "reason": "FT4 0.5-70.0 pmol/L（与中国论文一致）"},
+                {"var": "总胆固醇(TC,mmol/L)", "min": 1.0, "max": 13.0, "reason": "TC 1.0-13.0 mmol/L（与中国论文一致）"},
+                {"var": "甘油三酯(TG,mmol/L)", "min": 0.2, "max": 11.3, "reason": "TG 0.2-11.3 mmol/L（与中国论文一致）"},
+                {"var": "高密度脂蛋白(HDL,mmol/L)", "min": 0.2, "max": 3.0, "reason": "HDL 0.2-3.0 mmol/L（与中国论文一致）"},
+                {"var": "低密度脂蛋白(LDL,mmol/L)", "min": 0.3, "max": 8.0, "reason": "LDL 0.3-8.0 mmol/L（与中国论文一致）"},
+                {"var": "谷丙转氨酶(ALT,IU/L)", "min": 3, "max": 200, "reason": "ALT 3-200 U/L（与中国论文一致）"},
+                {"var": "肌酐(Cr,μmol/L)", "min": 10, "max": 300, "reason": "Cr 10-300 μmol/L（与中国论文一致）"},
+            ],
+            "disease_classes": [],
+            "drug_audit": True,
+        },
+        "derived_indices": ["TSH/FT4比值(TSH/FT4)", "FT3/FT4比值(FT3/FT4)", "TyG指数(TyG)",
+                            "动脉粥样硬化指数(AI)", "非HDL-C(non-HDL)", "血脂达标(LDL-C达标)",
+                            "高血压分级(BP-Cat)"],
+        "flag_outliers": True, "flag_missing_pct": 80,
+    },
+    "中美TSH对比_敏感度分析(调整BMI+降脂药)": {
+        "study_name": "中美TSH-血脂对比 — 敏感度分析(调整BMI/降脂药/排除孕妇)",
+        "description": "在主分析基础上，额外调整BMI和降脂药使用，排除孕妇。用于验证主分析结果的稳健性",
         "data": {"cycles": ["E","F","G"], "groups": ["demo_core","demo_detail","bmx","bpx","bpq",
                  "smq","alq","diq","lipid","glu","liver","kidney","thy","inf",
                  "mcq","rxq"],
@@ -2676,7 +2709,39 @@ STUDY_TEMPLATES = {
                 {"var": "谷丙转氨酶(ALT,IU/L)", "min": 3, "max": 200, "reason": "ALT 3-200 U/L"},
                 {"var": "肌酐(Cr,μmol/L)", "min": 10, "max": 300, "reason": "Cr 10-300 μmol/L"},
             ],
-            "disease_classes": [],
+            "disease_classes": ["怀孕(Pregnant)"],
+            "drug_audit": True,
+        },
+        "derived_indices": ["TSH/FT4比值(TSH/FT4)", "FT3/FT4比值(FT3/FT4)", "TyG指数(TyG)",
+                            "动脉粥样硬化指数(AI)", "非HDL-C(non-HDL)", "血脂达标(LDL-C达标)",
+                            "高血压分级(BP-Cat)"],
+        "flag_outliers": True, "flag_missing_pct": 80,
+    },
+    "甲状腺功能研究": {
+        "study_name": "甲状腺功能与代谢研究(J-Shaped TSH标准)",
+        "description": "基于论文10项QC过滤器：TSH 0.1-10.0, FT3 0.5-50.0pmol/L, FT4 0.5-70.0pmol/L, TC 1.0-13.0, TG 0.2-11.3, HDL 0.2-3.0, LDL 0.3-8.0, ALT 3-200, Cr 10-300μmol/L, 年龄≥18, BMI 16-40",
+        "data": {"cycles": ["E","F","G"], "groups": ["demo_core","demo_detail","bmx","bpx","bpq",
+                 "smq","alq","diq","lipid","glu","liver","kidney","thy","inf",
+                 "mcq","rxq"],
+                 "convert_units": True, "auto_aggregate": True},
+        "inclusion": [
+            {"var": "年龄(Age,岁)", "min": 18, "reason": "年龄≥18岁"},
+            {"var": "BMI(kg/m²)", "min": 16, "max": 40, "reason": "BMI 16-40 kg/m²"},
+        ],
+        "exclusion": {
+            "medication_classes": ["甲状腺药物(Thyroid)", "降脂药(Lipid-lowering)"],
+            "range_filters": [
+                {"var": "促甲状腺激素(TSH,mIU/L)", "min": 0.1, "max": 10.0, "reason": "TSH 0.1-10.0 mIU/L"},
+                {"var": "游离三碘甲腺原氨酸(FT3,pmol/L)", "min": 0.5, "max": 50.0, "reason": "FT3 0.5-50.0 pmol/L"},
+                {"var": "游离甲状腺素(FT4,pmol/L)", "min": 0.5, "max": 70.0, "reason": "FT4 0.5-70.0 pmol/L"},
+                {"var": "总胆固醇(TC,mmol/L)", "min": 1.0, "max": 13.0, "reason": "TC 1.0-13.0 mmol/L"},
+                {"var": "甘油三酯(TG,mmol/L)", "min": 0.2, "max": 11.3, "reason": "TG 0.2-11.3 mmol/L"},
+                {"var": "高密度脂蛋白(HDL,mmol/L)", "min": 0.2, "max": 3.0, "reason": "HDL 0.2-3.0 mmol/L"},
+                {"var": "低密度脂蛋白(LDL,mmol/L)", "min": 0.3, "max": 8.0, "reason": "LDL 0.3-8.0 mmol/L"},
+                {"var": "谷丙转氨酶(ALT,IU/L)", "min": 3, "max": 200, "reason": "ALT 3-200 U/L"},
+                {"var": "肌酐(Cr,μmol/L)", "min": 10, "max": 300, "reason": "Cr 10-300 μmol/L"},
+            ],
+            "disease_classes": ["怀孕(Pregnant)"],
             "drug_audit": True,
         },
         "derived_indices": ["TSH/FT4比值(TSH/FT4)", "FT3/FT4比值(FT3/FT4)", "TyG指数(TyG)",
@@ -3258,6 +3323,7 @@ class CleaningPipeline:
 
     def _apply_disease_exclusion(self, disease_classes):
         """根据既往病史排除参与者"""
+        import re as _re
         for cls_name in disease_classes:
             if cls_name not in DISEASE_EXCLUSION_CATEGORIES:
                 self.log(f"⏭️ 未知疾病分类: {cls_name}")
@@ -3268,6 +3334,15 @@ class CleaningPipeline:
                 col = self._find_col(vn)
                 if col:
                     matched_cols.append(col)
+                    continue
+                # ★ Bug修复: 短名模式下列名可能是英文缩写，尝试提取括号中的英文
+                m = _re.search(r'\(([A-Za-z][A-Za-z0-9_\-]+)\)', vn)
+                if m:
+                    eng_short = m.group(1)
+                    col = self._find_col(eng_short)
+                    if col:
+                        self.log(f"  ✓ 疾病排除 '{cls_name}': 中文列名'{vn}'未找到，使用短名'{eng_short}'匹配成功")
+                        matched_cols.append(col)
             if not matched_cols:
                 # 检查这些变量对应的原始变量名是否在当前数据源中存在
                 raw_var_hints = []
@@ -3279,7 +3354,8 @@ class CleaningPipeline:
                                 raw_var_hints.append(v["var_name"])
                                 break
                 hint_str = f" (原始变量: {', '.join(raw_var_hints)})" if raw_var_hints else ""
-                self.log(f"⏭️ {cls_name}: 当前周期数据表中无{var_names}这些列{hint_str}，跳过疾病排除")
+                self.log(f"⚠️ {cls_name}: 当前数据表中无{var_names}这些列{hint_str}，疾病排除已跳过！")
+                # !== 改为警告级别，不再静默跳过 ==
                 continue
             before = len(self.df)
             mask = pd.Series(False, index=self.df.index)
@@ -3561,103 +3637,72 @@ class NhanesGUI:
         top = ttk.LabelFrame(pw, text="排除条件设置", padding="5")
         pw.add(top, weight=1)
 
-        # 疾病排除
+        # 疾病排除（4列，确保全部显示）
         Label(top, text="排除疾病史（勾选=有该病史的排除）",
               font=("微软雅黑", 9, "bold")).pack(anchor="w")
         disease_frame = ttk.Frame(top)
         disease_frame.pack(fill="x", pady=2)
         self.profile_disease_vars = {}
         disease_list = sorted(DISEASE_EXCLUSION_CATEGORIES.keys())
-        col1 = ttk.Frame(disease_frame)
-        col2 = ttk.Frame(disease_frame)
-        col1.pack(side="left", fill="x", expand=True)
-        col2.pack(side="left", fill="x", expand=True)
+        n_disease_cols = 4
+        disease_cols = []
+        for ci in range(n_disease_cols):
+            f = ttk.Frame(disease_frame)
+            f.pack(side="left", fill="x", expand=True)
+            disease_cols.append(f)
         for i, dname in enumerate(disease_list):
             v = BooleanVar(value=False)
             self.profile_disease_vars[dname] = v
-            target = col1 if i % 2 == 0 else col2
+            disease_cols[i % n_disease_cols].pack_forget()
+            # 重新pack保持权重均匀
+        for ci, f in enumerate(disease_cols):
+            f.pack(side="left", fill="x", expand=True)
+        for i, dname in enumerate(disease_list):
+            v = self.profile_disease_vars[dname]
+            target = disease_cols[i % n_disease_cols]
             ttk.Checkbutton(target, text=dname, variable=v).pack(anchor="w")
 
         ttk.Separator(top, orient="horizontal").pack(fill="x", pady=4)
 
-        # 药物排除
+        # 药物排除（4列，确保全部显示）
         Label(top, text="排除用药（勾选=用该类药的排除）",
               font=("微软雅黑", 9, "bold")).pack(anchor="w")
         drug_frame = ttk.Frame(top)
         drug_frame.pack(fill="x", pady=2)
         self.profile_drug_vars = {}
         drug_list = sorted(DRUG_CLASSIFICATION.keys())
-        col1 = ttk.Frame(drug_frame)
-        col2 = ttk.Frame(drug_frame)
-        col1.pack(side="left", fill="x", expand=True)
-        col2.pack(side="left", fill="x", expand=True)
+        n_drug_cols = 4
+        drug_cols = []
+        for ci in range(n_drug_cols):
+            f = ttk.Frame(drug_frame)
+            f.pack(side="left", fill="x", expand=True)
+            drug_cols.append(f)
         for i, drname in enumerate(drug_list):
             v = BooleanVar(value=False)
             self.profile_drug_vars[drname] = v
-            target = col1 if i % 2 == 0 else col2
+            target = drug_cols[i % n_drug_cols]
             ttk.Checkbutton(target, text=drname, variable=v).pack(anchor="w")
 
         ttk.Separator(top, orient="horizontal").pack(fill="x", pady=4)
 
-        # 年龄范围 + 范围排除快捷输入
-        range_f = ttk.Frame(top)
-        range_f.pack(fill="x")
-        Label(range_f, text="年龄范围:", font=("微软雅黑", 9)).pack(side="left")
-        self.profile_age_min = Entry(range_f, width=6)
-        self.profile_age_min.insert(0, "18")
-        self.profile_age_min.pack(side="left", padx=2)
-        Label(range_f, text="~").pack(side="left")
-        self.profile_age_max = Entry(range_f, width=6)
-        self.profile_age_max.insert(0, "80")
-        self.profile_age_max.pack(side="left", padx=2)
-        Label(range_f, text="岁").pack(side="left")
-        Label(range_f, text="  |  ", font=("微软雅黑", 8)).pack(side="left")
-
-        # 衍生指标
-        Label(range_f, text="衍生指标:", font=("微软雅黑", 9, "bold")).pack(side="left")
-        idx_options = sorted(DERIVED_FORMULAS.keys())
-        self.profile_idx_var = StringVar(value="无")
-        idx_menu = ttk.Combobox(range_f, textvariable=self.profile_idx_var,
-                                 values=["无"] + idx_options, width=16, state="readonly")
-        idx_menu.pack(side="left", padx=2)
-        self.profile_idx2_var = StringVar(value="无")
-        idx_menu2 = ttk.Combobox(range_f, textvariable=self.profile_idx2_var,
-                                  values=["无"] + idx_options, width=16, state="readonly")
-        idx_menu2.pack(side="left", padx=2)
-
         ttk.Separator(top, orient="horizontal").pack(fill="x", pady=4)
 
-        # 复合条件编辑器
-        Label(top, text="复合筛选条件（支持 AND/OR 多组）",
-              font=("微软雅黑", 9, "bold")).pack(anchor="w")
-        Label(top, text="例: ALT(10~20) 且 AST(3~50) 为一组；组间可选 AND 或 OR 关系",
-              font=("微软雅黑", 7), fg="#888").pack(anchor="w")
-
-        cond_ctrl = ttk.Frame(top)
-        cond_ctrl.pack(fill="x", pady=2)
-        self.cond_between_logic = StringVar(value="AND")
-        ttk.Radiobutton(cond_ctrl, text="组间 AND（满足全部组）", variable=self.cond_between_logic,
-                        value="AND").pack(side="left", padx=2)
-        ttk.Radiobutton(cond_ctrl, text="组间 OR（满足任意组）", variable=self.cond_between_logic,
-                        value="OR").pack(side="left", padx=2)
-
-        # 条件组列表容器
-        cond_scroll = ttk.Frame(top)
-        cond_scroll.pack(fill="both", expand=True)
-        self.cond_canvas = Canvas(cond_scroll, height=120, highlightthickness=0)
-        cond_sb = ttk.Scrollbar(cond_scroll, orient="vertical", command=self.cond_canvas.yview)
-        self.cond_inner = ttk.Frame(self.cond_canvas)
-        self.cond_inner.bind("<Configure>", lambda e: self.cond_canvas.configure(
-            scrollregion=self.cond_canvas.bbox("all")))
-        self.cond_canvas.create_window((0, 0), window=self.cond_inner, anchor="nw")
-        self.cond_canvas.configure(yscrollcommand=cond_sb.set)
-        self.cond_canvas.pack(side="left", fill="both", expand=True)
-        cond_sb.pack(side="right", fill="y")
-        _bind_mousewheel(self.cond_canvas)
-
-        self.condition_rows = []  # 每行: [group_frame, logic_label, group_key, cond_widgets]
-        ttk.Button(top, text="+ 添加条件组", command=self._add_condition_group).pack(anchor="w", pady=2)
-        self._add_condition_group()  # 默认一组
+        # 详细参数编辑入口（统一弹窗）
+        detail_f = ttk.Frame(top)
+        detail_f.pack(fill="x", pady=2)
+        Label(detail_f, text="详细筛选参数:", font=("微软雅黑", 9, "bold")).pack(side="left")
+        self.profile_filter_status = Label(detail_f, text="年龄18-80, BMI16-40, 9项QC已启用",
+                                            font=("微软雅黑", 8), fg="#2e7d32")
+        self.profile_filter_status.pack(side="left", padx=5)
+        ttk.Button(detail_f, text="⚙️ 编辑全部参数", width=16,
+                   command=self._open_filter_editor).pack(side="right")
+        # 存储当前过滤器配置
+        self._current_range_filters = []
+        self._filter_age_min = 18
+        self._filter_age_max = 80
+        self._filter_bmi_min = 16
+        self._filter_bmi_max = 40
+        self._filter_derived = ["无", "无"]
 
         # === 下区：方案操作 ===
         bottom = ttk.LabelFrame(pw, text="方案操作", padding="5")
@@ -3704,18 +3749,27 @@ class NhanesGUI:
         # 年龄范围
         for criterion in cfg.get("inclusion", []):
             if "年龄" in criterion.get("var", ""):
-                vmin = criterion.get("min", "")
-                vmax = criterion.get("max", "")
-                if vmin:
-                    self.profile_age_min.delete(0, END)
-                    self.profile_age_min.insert(0, str(vmin))
-                if vmax:
-                    self.profile_age_max.delete(0, END)
-                    self.profile_age_max.insert(0, str(vmax))
+                vmin = criterion.get("min", 18)
+                vmax = criterion.get("max", 80)
+                self._filter_age_min = int(vmin)
+                self._filter_age_max = int(vmax)
+            if "BMI" in criterion.get("var", ""):
+                vmin = criterion.get("min", 16)
+                vmax = criterion.get("max", 40)
+                self._filter_bmi_min = int(vmin)
+                self._filter_bmi_max = int(vmax)
+        # 范围过滤
+        self._current_range_filters = cfg.get("exclusion", {}).get("range_filters", [])
         # 衍生指标
         idx_list = cfg.get("derived_indices", [])
-        self.profile_idx_var.set(idx_list[0] if len(idx_list) > 0 else "无")
-        self.profile_idx2_var.set(idx_list[1] if len(idx_list) > 1 else "无")
+        self._filter_derived = [idx_list[0] if len(idx_list) > 0 else "无",
+                                idx_list[1] if len(idx_list) > 1 else "无"]
+        # 更新状态标签
+        self.profile_filter_status.config(
+            text=f"年龄{self._filter_age_min}-{self._filter_age_max}, "
+                 f"BMI{self._filter_bmi_min}-{self._filter_bmi_max}, "
+                 f"{len(self._current_range_filters)}项QC已启用",
+            fg="#2e7d32" if self._current_range_filters else "#c62828")
         self.profile_status.config(text=f"已加载模板: {tname}", fg="#2e7d32")
         # 复合条件
         self._load_compound_config_to_ui(cfg.get("compound_filters", {}))
@@ -3733,15 +3787,148 @@ class NhanesGUI:
         detail = "\n".join(detail_parts) if detail_parts else "无特殊筛选条件"
         messagebox.showinfo("模板已加载", f"已加载模板: {tname}\n\n{detail}")
 
+    def _open_filter_editor(self):
+        """弹出窗口：编辑年龄/BMI/范围过滤/衍生指标"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("编辑详细筛选参数")
+        dialog.geometry("680x520")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        dialog.resizable(False, False)
+
+        main_f = ttk.Frame(dialog, padding="10")
+        main_f.pack(fill="both", expand=True)
+
+        # --- 纳入标准 ---
+        Label(main_f, text="纳入标准", font=("微软雅黑", 10, "bold")).pack(anchor="w")
+        inc_f = ttk.Frame(main_f)
+        inc_f.pack(fill="x", pady=5)
+        Label(inc_f, text="年龄最小值:", font=("微软雅黑", 9)).pack(side="left")
+        age_min_e = Entry(inc_f, width=6); age_min_e.insert(0, str(self._filter_age_min))
+        age_min_e.pack(side="left", padx=2)
+        Label(inc_f, text="  最大值:", font=("微软雅黑", 9)).pack(side="left")
+        age_max_e = Entry(inc_f, width=6); age_max_e.insert(0, str(self._filter_age_max))
+        age_max_e.pack(side="left", padx=2)
+        Label(inc_f, text="岁    ", font=("微软雅黑", 9)).pack(side="left")
+        Label(inc_f, text="BMI最小值:", font=("微软雅黑", 9)).pack(side="left")
+        bmi_min_e = Entry(inc_f, width=6); bmi_min_e.insert(0, str(self._filter_bmi_min))
+        bmi_min_e.pack(side="left", padx=2)
+        Label(inc_f, text="  最大值:", font=("微软雅黑", 9)).pack(side="left")
+        bmi_max_e = Entry(inc_f, width=6); bmi_max_e.insert(0, str(self._filter_bmi_max))
+        bmi_max_e.pack(side="left", padx=2)
+
+        ttk.Separator(main_f, orient="horizontal").pack(fill="x", pady=8)
+
+        # --- 范围过滤 ---
+        Label(main_f, text="数值范围过滤（勾选=启用，可修改min/max）",
+              font=("微软雅黑", 10, "bold")).pack(anchor="w")
+
+        # 表头
+        hdr_f = ttk.Frame(main_f)
+        hdr_f.pack(fill="x", pady=2)
+        Label(hdr_f, text="启用", width=5, font=("微软雅黑", 8, "bold")).pack(side="left")
+        Label(hdr_f, text="变量", width=30, font=("微软雅黑", 8, "bold"), anchor="w").pack(side="left")
+        Label(hdr_f, text="最小值", width=10, font=("微软雅黑", 8, "bold")).pack(side="left")
+        Label(hdr_f, text="最大值", width=10, font=("微软雅黑", 8, "bold")).pack(side="left")
+
+        # 滚动区域
+        canvas = Canvas(main_f, height=220, highlightthickness=0)
+        sb = ttk.Scrollbar(main_f, orient="vertical", command=canvas.yview)
+        inner = ttk.Frame(canvas)
+        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=inner, anchor="nw")
+        canvas.configure(yscrollcommand=sb.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        sb.pack(side="right", fill="y")
+
+        rf_vars = []  # [(enabled_var, min_entry, max_entry, filter_dict)]
+        default_rf = [
+            ("TSH (mIU/L)", 0.1, 10.0),
+            ("FT3 (pmol/L)", 0.5, 50.0),
+            ("FT4 (pmol/L)", 0.5, 70.0),
+            ("TC (mmol/L)", 1.0, 13.0),
+            ("TG (mmol/L)", 0.2, 11.3),
+            ("HDL (mmol/L)", 0.2, 3.0),
+            ("LDL (mmol/L)", 0.3, 8.0),
+            ("ALT (IU/L)", 3, 200),
+            ("Cr (μmol/L)", 10, 300),
+        ]
+
+        for var_name, default_min, default_max in default_rf:
+            row_f = ttk.Frame(inner)
+            row_f.pack(fill="x", pady=1)
+
+            # 查找是否在current_range_filters中有配置
+            enabled = True
+            cur_min = default_min
+            cur_max = default_max
+            for rf in self._current_range_filters:
+                if var_name.split(" ")[0] in rf.get("var", ""):
+                    enabled = True
+                    cur_min = rf.get("min", default_min)
+                    cur_max = rf.get("max", default_max)
+                    break
+
+            ev = BooleanVar(value=enabled)
+            cb = ttk.Checkbutton(row_f, variable=ev, width=3)
+            cb.pack(side="left")
+            Label(row_f, text=var_name, width=30, anchor="w", font=("微软雅黑", 9)).pack(side="left")
+            min_e = Entry(row_f, width=10)
+            min_e.insert(0, str(cur_min))
+            min_e.pack(side="left", padx=2)
+            max_e = Entry(row_f, width=10)
+            max_e.insert(0, str(cur_max))
+            max_e.pack(side="left", padx=2)
+            rf_vars.append((ev, min_e, max_e, {"var": var_name}))
+
+        ttk.Separator(main_f, orient="horizontal").pack(fill="x", pady=8)
+
+        # --- 衍生指标 ---
+        Label(main_f, text="衍生指标", font=("微软雅黑", 10, "bold")).pack(anchor="w")
+        der_f = ttk.Frame(main_f)
+        der_f.pack(fill="x", pady=3)
+        idx_options = ["无"] + sorted(DERIVED_FORMULAS.keys())
+        Label(der_f, text="指标1:", font=("微软雅黑", 9)).pack(side="left")
+        der1_v = StringVar(value=self._filter_derived[0] if len(self._filter_derived)>0 else "无")
+        om1 = ttk.Combobox(der_f, textvariable=der1_v, values=idx_options, width=18, state="readonly")
+        om1.pack(side="left", padx=3)
+        Label(der_f, text="指标2:", font=("微软雅黑", 9)).pack(side="left")
+        der2_v = StringVar(value=self._filter_derived[1] if len(self._filter_derived)>1 else "无")
+        om2 = ttk.Combobox(der_f, textvariable=der2_v, values=idx_options, width=18, state="readonly")
+        om2.pack(side="left", padx=3)
+
+        # --- 确认/取消 ---
+        btn_f = ttk.Frame(main_f)
+        btn_f.pack(fill="x", pady=10)
+        ttk.Button(btn_f, text="确定", width=10, command=lambda: (
+            setattr(self, '_filter_age_min', int(age_min_e.get() or 0)),
+            setattr(self, '_filter_age_max', int(age_max_e.get() or 0)),
+            setattr(self, '_filter_bmi_min', int(bmi_min_e.get() or 0)),
+            setattr(self, '_filter_bmi_max', int(bmi_max_e.get() or 0)),
+            setattr(self, '_current_range_filters', [
+                {"var": rf[3]["var"], "min": float(rf[1].get()), "max": float(rf[2].get())}
+                for rf in rf_vars if rf[0].get()
+            ]),
+            setattr(self, '_filter_derived', [der1_v.get(), der2_v.get()]),
+            self.profile_filter_status.config(
+                text=f"年龄{self._filter_age_min}-{self._filter_age_max}, "
+                     f"BMI{self._filter_bmi_min}-{self._filter_bmi_max}, "
+                     f"{len(self._current_range_filters)}项QC已启用",
+                fg="#2e7d32" if self._current_range_filters else "#c62828"),
+            dialog.destroy()
+        )).pack(side="right", padx=5)
+        ttk.Button(btn_f, text="取消", width=10, command=dialog.destroy).pack(side="right", padx=5)
+
     def _build_profile_from_ui(self):
         """从GUI可视化面板构建方案配置"""
         inclusion = []
-        try:
-            age_min = int(self.profile_age_min.get())
-            age_max = int(self.profile_age_max.get())
-            inclusion.append({"var": "年龄(Age,岁)", "min": age_min, "max": age_max})
-        except:
-            pass
+        # 使用弹窗中设定的值替代原widget
+        if hasattr(self, '_filter_age_min') and self._filter_age_min > 0:
+            inclusion.append({"var": "年龄(Age,岁)", "min": self._filter_age_min, "max": self._filter_age_max,
+                              "reason": f"年龄{self._filter_age_min}-{self._filter_age_max}岁"})
+        if hasattr(self, '_filter_bmi_min') and self._filter_bmi_min > 0:
+            inclusion.append({"var": "BMI(kg/m²)", "min": self._filter_bmi_min, "max": self._filter_bmi_max,
+                              "reason": f"BMI {self._filter_bmi_min}-{self._filter_bmi_max} kg/m²"})
 
         disease_classes = [d for d, v in self.profile_disease_vars.items() if v.get()]
         medication_classes = [d for d, v in self.profile_drug_vars.items() if v.get()]
@@ -3755,16 +3942,17 @@ class NhanesGUI:
                 medication_classes = tmpl_exc.get("medication_classes", [])
 
         derived = []
-        for idx_var in [self.profile_idx_var, self.profile_idx2_var]:
-            val = idx_var.get()
-            if val and val != "无":
-                derived.append(val)
+        if hasattr(self, '_filter_derived'):
+            for val in self._filter_derived:
+                if val and val != "无":
+                    derived.append(val)
 
-        # 从已加载模板读取range_filters（UI没有对应控件，直接从STUDY_TEMPLATES拿）
+        # 使用弹窗中编辑的range_filters
         range_filters = []
-        if self._loaded_template_name and self._loaded_template_name in STUDY_TEMPLATES:
+        if hasattr(self, '_current_range_filters') and self._current_range_filters:
+            range_filters = self._current_range_filters
+        elif self._loaded_template_name and self._loaded_template_name in STUDY_TEMPLATES:
             range_filters = STUDY_TEMPLATES[self._loaded_template_name].get("exclusion", {}).get("range_filters", [])
-            # 同时补全inclusion中的BMI等条件
             tmpl_inclusion = STUDY_TEMPLATES[self._loaded_template_name].get("inclusion", [])
             existing_vars = {c["var"] for c in inclusion}
             for tc in tmpl_inclusion:
