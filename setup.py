@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
 
 setup(
     name="nhanes_downloader",
-    version="2.06",
+    version="2.08",
     description="NHANES Data Downloader & Validation Engine — A Standardized Preprocessing Pipeline",
     author="李鑫 (Li Xin)",
     author_email="lxddzyx@126.com",
