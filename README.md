@@ -83,11 +83,18 @@ nhanes-data-automator/
 └── validation_scripts/
  ├── NHANES_R_validation.R # R haven validation (63-variable reference)
  ├── FULL63_验证.R # Tier 1: 64-variable element-wise comparison vs R haven
+ ├── FULL63_验证结果_真实对比.csv # Tier 1 results (64 variables, per-cycle)
+ ├── _v1b_foreign.R # Independent parser cross-check (foreign vs haven)
+ ├── _v3a_export_ref.R # Export wide table via foreign::read.xport
+ ├── _v_cross.py # V2-V7 independent Python cross-verification
+ ├── _p2_descriptive.py # 17 core variables descriptive statistics (mean±SD)
  ├── _p3_weighted.R # Tier 2: weighted survey means vs CDC reference
  ├── mortality_validation.R # Mortality FWF validation
  ├── 分类变量验证.py # Tier 3: categorical mapping check (55 variables)
  ├── 数据完整性验证.py # Completeness check
  ├── _p6_screening.R # Screening integrity: 6 scenarios
+ ├── _p6b_tool_screening.py # Tool real screening logic recheck (6 scenarios)
+ ├── _p6c_med.py # Medication exclusion verification (97.7% SEQN overlap)
  └── _p7_qc.py # QC 19 checks (snapshot drift detection)
 ```
 
