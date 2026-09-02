@@ -101,6 +101,18 @@ class QCEngine:
         if not passed:
             self.report['passed'] = False
 
+    def _find_col(self, var_name):
+        """按变量名查找列，兼容单位斜杠/下划线两种写法（mIU/L vs mIU_L）"""
+        norm = lambda s: s.replace("/", "_")
+        key = norm(var_name)
+        for c in self.df.columns:
+            if key == norm(c):
+                return c
+        for c in self.df.columns:
+            if key in norm(c):
+                return c
+        return None
+
     def check_mean(self, var_name, threshold=5.0):
         """关键变量均值 vs 黄金快照"""
         if not self.snapshot or var_name not in self.snapshot['core_vars']:
@@ -109,11 +121,11 @@ class QCEngine:
         ref = self.snapshot['core_vars'][var_name]
         if ref['type'] != 'numeric':
             return
-        found = [c for c in self.df.columns if var_name in c]
-        if not found:
+        col = self._find_col(var_name)
+        if col is None:
             self.add_check(var_name, False, '列不存在', None, None)
             return
-        vals = pd.to_numeric(self.df[found[0]], errors='coerce')
+        vals = pd.to_numeric(self.df[col], errors='coerce')
         curr_mean = float(vals.mean())
         diff_pct = abs(curr_mean - ref['mean']) / ref['mean'] * 100 if ref['mean'] != 0 else 0
         passed = diff_pct < threshold
@@ -129,10 +141,10 @@ class QCEngine:
         if not self.snapshot or var_name not in self.snapshot['core_vars']:
             return
         ref = self.snapshot['core_vars'][var_name]
-        found = [c for c in self.df.columns if var_name in c]
-        if not found:
+        col = self._find_col(var_name)
+        if col is None:
             return
-        curr_miss = round(float(self.df[found[0]].isna().mean() * 100), 2)
+        curr_miss = round(float(self.df[col].isna().mean() * 100), 2)
         diff = abs(curr_miss - ref['missing_pct'])
         passed = diff < threshold
         self.add_check(
@@ -156,14 +168,21 @@ class QCEngine:
 
     def check_lipid_closure(self):
         """血脂闭环：LDL + HDL + TG/5 ≈ TC"""
-        cols = {k: [c for c in self.df.columns if k in c] for k in
-                ['LDL.mg', 'HDL.mg', 'TG.mg', 'TC.mg']}
+        def find(keyword, unit):
+            for c in self.df.columns:
+                nu = c.replace("/", "_").upper()
+                if keyword in nu and unit in nu:
+                    return c
+            return None
+        cols = {
+            'LDL.mg': find('LDL', 'MG'), 'HDL.mg': find('HDL', 'MG'),
+            'TG.mg': find('TG', 'MG'), 'TC.mg': find('TC', 'MG')}
         if not all(cols.values()):
             return
-        ldl = pd.to_numeric(self.df[cols['LDL.mg'][0]], errors='coerce')
-        hdl = pd.to_numeric(self.df[cols['HDL.mg'][0]], errors='coerce')
-        tg = pd.to_numeric(self.df[cols['TG.mg'][0]], errors='coerce')
-        tc = pd.to_numeric(self.df[cols['TC.mg'][0]], errors='coerce')
+        ldl = pd.to_numeric(self.df[cols['LDL.mg']], errors='coerce')
+        hdl = pd.to_numeric(self.df[cols['HDL.mg']], errors='coerce')
+        tg = pd.to_numeric(self.df[cols['TG.mg']], errors='coerce')
+        tc = pd.to_numeric(self.df[cols['TC.mg']], errors='coerce')
         valid = ldl.notna() & hdl.notna() & tg.notna() & tc.notna()
         if valid.sum() < 10:
             return
@@ -225,6 +244,14 @@ class QCEngine:
 
 
 if __name__ == '__main__':
-    # 生成黄金快照
-    csv = r'C:\Users\lxddz\Desktop\NHANES_Data_Automator_v2.05_Validation\NHANES_E_F_G_完整数据_v205.csv'
+    # 生成黄金快照：把工具导出的 CSV 路径作为参数传入（不硬编码个人路径）
+    # 我发现：旧版这里写死了作者电脑上的 CSV 路径，别人跑不了。
+    # 我解决：改为命令行参数，不传时给出提示。
+    # 我验证：在 2.07版本 目录下用实际 CSV 生成过 golden_snapshot.json（见 P7）。
+    import sys
+    csv = sys.argv[1] if len(sys.argv) > 1 else ""
+    if not csv:
+        print("用法: python qc_engine.py <工具导出的CSV路径>")
+        print("从已核验的 CSV 生成 golden_snapshot.json（供 QCEngine 均值/缺失率对比）")
+        sys.exit(1)
     generate_snapshot(csv)
