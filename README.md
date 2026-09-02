@@ -81,10 +81,14 @@ nhanes-data-automator/
 │ ├── __init__.py
 │ └── test_core.py # Unit tests (pytest)
 └── validation_scripts/
- ├── NHANES_R_validation.R # R haven validation
+ ├── NHANES_R_validation.R # R haven validation (63-variable reference)
+ ├── FULL63_验证.R # Tier 1: 64-variable element-wise comparison vs R haven
+ ├── _p3_weighted.R # Tier 2: weighted survey means vs CDC reference
  ├── mortality_validation.R # Mortality FWF validation
- ├── categorical_mapping_check.py # Categorical mapping check
- └── data_completeness_check.py # Completeness check
+ ├── 分类变量验证.py # Tier 3: categorical mapping check (55 variables)
+ ├── 数据完整性验证.py # Completeness check
+ ├── _p6_screening.R # Screening integrity: 6 scenarios
+ └── _p7_qc.py # QC 19 checks (snapshot drift detection)
 ```
 
 ## Validation Summary
