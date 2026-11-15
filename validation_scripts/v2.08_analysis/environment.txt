@@ -1,0 +1,28 @@
+NHANES Data Automator · 环境清单（IJMI 投稿包 v1.06）
+生成日期：2026-11-15
+
+一、验证机（Python 侧，本机实测）
+  OS            Windows 10 (10.0.19045)
+  Python        3.13.13
+  pandas        2.3.3
+  numpy         2.4.4
+  工具主体      nhanes_downloader v2.08（Tkinter GUI，Python 3.10+ 兼容）
+  python-docx   1.2.0（仅用于稿件/表件生成，不参与数据分析）
+  PyMuPDF       1.28.0（图件质检，不参与数据分析）
+  Pillow        11.3.0（图件位图导出）
+
+二、统计侧（R，稿件 Methods 所载；本机未安装 R，未在此机复跑）
+  R             4.6.0
+  haven         2.5.4（Tier 1 参考值导出）
+  survey        4.2（加权估计）
+  psych         2.3.6（ICC）
+  readr         （死亡文件定宽解析 read_fwf）
+
+三、外部数据
+  NHANES 2007–2012（周期 E/F/G）XPT 文件，CDC/NCHS 公开
+  NCHS Linked Mortality File 2019 public-use（2007–2012 链接）
+
+四、复跑记录
+  2026-11-15  _p6c_med.py 本机重跑：工具=1129，早期=1153，重叠=1127（97.7%），
+              工具独有=2，早期独有=26；第三套独立词根=1129（与工具完全重叠）。
+              产物：Reproducibility_复现\结果表\P6c_Medication_Exclusion.csv
