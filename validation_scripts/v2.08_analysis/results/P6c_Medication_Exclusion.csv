@@ -1,0 +1,9 @@
+﻿Metric,Count
+R_thyroid_users,1153.0
+Tool_excluded,1129.0
+Overlap,1127.0
+Tool_only,2.0
+R_only,26.0
+Overlap_pct_of_R,97.75
+Independent_root3,1129.0
+Root3_overlap_tool,1129.0
