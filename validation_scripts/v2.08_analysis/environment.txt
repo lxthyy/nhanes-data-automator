@@ -1,4 +1,4 @@
-NHANES Data Automator · 环境清单（IJMI 投稿包 v1.06）
+NHANES Data Automator · 环境清单（MIM 投稿包 v1.07；正文 v1.08）
 生成日期：2026-11-15
 
 一、验证机（Python 侧，本机实测）

@@ -12,7 +12,7 @@ Tool source: https://github.com/lxthyy/nhanes-data-automator (tag **v2.08**, MIT
 ```
 code/                 12 validation scripts (Python + R) used for the four-tier comparison
 code/reproduce_entry.py  runnable entry point (prints the pipeline; optional medication re-run)
-results/              7 derived result files referenced by the manuscript
+results/              8 derived result files referenced by the manuscript
 environment.txt       software versions and rerun record
 ```
 
