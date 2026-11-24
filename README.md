@@ -80,7 +80,7 @@ nhanes-data-automator/
 ├── tests/
 │ ├── __init__.py
 │ └── test_core.py # Unit tests (pytest)
-└── validation_scripts/
+└── validation_scripts/v2.08_analysis/
  ├── NHANES_R_validation.R # R haven validation (63-variable reference)
  ├── FULL63_验证.R # Tier 1: 64-variable element-wise comparison vs R haven
  ├── FULL63_验证结果_真实对比.csv # Tier 1 results (64 variables, per-cycle)
@@ -109,7 +109,7 @@ The manuscript reports a four-tier cross-software consistency verification strat
 | 3 | Categorical variable mapping (55 variables) | **100% correct** |
 | 4 | Mortality FWF parsing vs R `read_fwf` | **3/3 cycles PASS**, expected NCHS trends |
 
-Screening integrity: **6/6 scenarios at 100% participant-level agreement with zero false positives**. All validation scripts are available in `validation_scripts/` for independent reproduction.
+Screening integrity: **6/6 scenarios at 100% participant-level agreement with zero false positives**. All validation scripts and the derived result tables reported in the manuscript are available in `validation_scripts/v2.08_analysis/` for independent reproduction.
 
 ## Citation
 
